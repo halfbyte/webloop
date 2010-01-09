@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script type="text/javascript" charset="utf-8" src="javascripts/jquery-1.3.2.min.js"></script>
+	<title>webloop</title>
+	
+	<style type="text/css" media="screen">
+	  #pattern { margin:100px auto; width:168px;}
+	 canvas.pattern-element { width:32px; height:32px; background:#ccc; margin:5px; padding:0;}
+	 canvas#detail-layer { position: absolute; top:0; left:0; width:160px; height:160px; display:block; background:#ccc; z-index:2;}
+	</style>
+	
+	<script type="text/javascript" charset="utf-8">
+	 $(function() {
+
+	   function drawElement(id) {
+	     var patternData = $(id).data('pattern-data');
+	     if (!patternData) return;
+	     var c = $(id).get(0).getContext('2d');
+	     c.clearRect(0, 0, 32, 32);
+	     c.fillStyle = "rgb(0,0,0)";
+	     c.fillRect(10,patternData.y * 2,20,2);
+	     c.fillRect(patternData.x * 2,0,2,2);
+	   }
+	   
+	   function drawElementWithPreview(id, x, y) {
+	     var patternData = $(id).data('pattern-data');
+	     if (!patternData) return;
+	     var c = $(id).get(0).getContext('2d');
+	     c.clearRect(0, 0, 32, 32);
+	     c.fillStyle = "rgb(0,0,0)";
+	     c.fillRect(10,patternData.y * 2,20,2);
+	     c.fillRect(patternData.x * 2,0,2,2);
+	     c.fillStyle = "#888";
+	     c.fillRect(10,y * 2,20,2);
+	     c.fillRect(x * 2,0,2,2);
+	   }
+	   
+	   
+	   function reloadPattern(data) {
+	     console.log(data);
+	     $.each(data.notes, function(i) {
+	       if (this) {
+	         $('#pattern-element-' + i).data("pattern-data", {x: this / 12, y: this % 12});
+	         drawElement('#pattern-element-' + i);
+	       } else {
+	         $('#pattern-element-' + i).data("pattern-data", null);
+	       }
+	       
+	     });
+ 	   }
+	   
+	   function openDetail(element) {
+
+	     var detailLayer = $('#detail-layer').get(0);
+	     if (!detailLayer) {
+	      $('body').append("<canvas id='detail-layer' width='32' height='32' style='display:hidden'></canvas>");
+	      detailLayer = $('#detail-layer').get(0);
+	     } else {
+	       $('#detail-layer').unbind();
+	     }
+	     $('#detail-layer').data('pattern-data', $(element).data('pattern-data'));
+	     $('#detail-layer').data('pattern-src', $(element));
+	     drawElement("#detail-layer");
+	     
+	     var offset = $(element).offset();
+	     $('#detail-layer').css({top: "" + (offset.top - 80) + "px", left: "" + (offset.left - 80) + "px"}).show('fast').click(function(e) {
+	       var offset = $('#detail-layer').offset();
+	       var x = Math.ceil((e.clientX - offset.left) / 10);
+	       var y = Math.ceil((e.clientY - offset.top) / 10);
+	       var idMatch = $(this).data('pattern-src').get(0).id.match(/pattern-element-(\d+)$/)
+	       
+	       $(this).data('pattern-src').data('pattern-data', {x:x,y:y});
+	       drawElement($(this).data('pattern-src'));
+	       $(this).data('pattern-data', {x:x,y:y});
+	       drawElement($(this));
+	       $(this).unbind();
+	       $(this).hide('slow');
+	       var id = idMatch[1];
+	       $.post('/edit', { x: x, y: y, id: id}, function(data) {
+	         console.log(data);
+	         reloadPattern(data);
+	       }, 'json');
+	     }).mousemove(function(e) {
+	       var offset = $('#detail-layer').offset();
+	       var x = Math.ceil((e.clientX - offset.left) / 10);
+	       var y = Math.ceil((e.clientY - offset.top) / 10);
+	       drawElementWithPreview($(this), x, y);
+	     });
+	   }
+	   for(var row=0;row<4;row++) {
+	     var rowContent = "";
+	     for(var col=0;col<4;col++) {
+	       rowContent += "<canvas width='32' height='32' class=\"pattern-element\" id=\"pattern-element-" + ((row * 4) + col ) + "\"></canvas>";
+	     }
+       rowContent = "<div class='row'>" + rowContent + "</div>";
+	     $('#pattern').append(rowContent)
+	   }
+
+	   for(var i=0;i<16;i++) {
+	     $("#pattern-element-" + i).click(function(e) {
+	       openDetail(this);
+	     }).data('pattern-data', {x:10, y:5})
+	     drawElement("#pattern-element-" + i)
+	   }
+
+     $.get('/update', {}, function(data) {
+       reloadPattern(data);
+     }, 'json');
+     window.setInterval(function() {
+       $.get('/update', {}, function(data) {
+         reloadPattern(data);
+       }, 'json');
+     }, 2000);
+	 });
+	</script>
+	
+</head>
+
+<body>
+  <h1>Webloop</h1>
+  <div id="pattern">
+  </div>
+  
+  <div id="toolbar">
+  </div>
+  <audio src="/playlist.m3u8" autoplay="autoplay" autobuffer="autobuffer">
+</body>
+</html>
