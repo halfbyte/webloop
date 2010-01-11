@@ -1,0 +1,69 @@
+
+body
+  font-family: Helvetica, Arial, sans-serif
+#edit-area
+  width: 368px
+  margin: 0 auto
+  #pattern 
+    width: 168px
+    float: left
+  .left-col, .right-col
+    width: 100px
+    float: left
+  .left-col
+    text-align: right
+
+#toolbar
+  clear: both
+  width: 386px
+  margin: 0 auto
+  list-style-type: none
+  padding: 0
+  text-align: center
+  li
+    display: inline
+    .selected
+      border: 2px solid black
+    a
+      padding: none
+      margin: none
+      img
+        margin:0
+        padding:0
+        top: 0
+        left: 0
+        display: inline
+      
+canvas
+  &.pattern-element
+    width: 32px
+    height: 32px
+    background: #ccc
+    margin: 5px
+    padding: 0
+  &#detail-layer
+    position: absolute
+    top: 0
+    left:0
+    width: 160px
+    height: 160px
+    display:block 
+    background: #ccc
+    z-index:2
+
+#foot
+  border-top: 1px solid black
+  font-size: 0.8em
+  text-align: center
+  margin-top: 30px
+  padding-top: 20px
+  
+.button-delete
+  width: 16px
+  height: 16px
+  background: red url(/images/delete.png) top left no-repeat
+  z-index: 4
+  display: block
+  position: absolute
+  overflow: hidden
+  line-height: 300px

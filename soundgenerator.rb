@@ -31,6 +31,25 @@ end
 #     YAML.dump( pattern, out )
 # end
 
+class PatternMem
+
+  def initialize
+    reload
+  end
+  
+  def reload
+    @mem = YAML.load_file('pattern.yml')
+  end
+  
+  def[](type, num, field)
+    @mem[type.to_s][num.to_i].nil? ? nil : @mem[type.to_s][num.to_i][field.to_s]
+  end
+  
+  def note?(num)
+    @mem['not'][num]
+  end
+end
+
 class MoogFilter  
 
   def initialize
@@ -158,23 +177,28 @@ env = make_env([0,1,1,0], 1, 0.3)
 filter = MoogFilter.new
 current_note = -1
 filter_freq = 0
+resonance = 0
+volume = 0
 bw = BufferWriter.new("test", 44_100 * 5)
-
+pattern = PatternMem.new
 loop do
-  pattern = YAML.load_file('pattern.yml')
+  pattern.reload
   0.upto(buffer_length - 1) do |i|
     pos = i.to_f / (buffer_length / 16).to_f
     if (pos.to_i > current_note)
       current_note = pos.to_i
-      if note = pattern[:notes][current_note]
-        env = make_env([0,1,0.2,0], 1, (pattern[:length][current_note] || 4).to_f / 16.to_f)
-        freq = midi_to_freq(pattern[:notes][current_note])
+      if pattern.note?(current_note)
+        env = make_env([0,1,0.2,0], 1, (pattern[:env, current_note, :x] || 4).to_f / 16.to_f)
+        midi_note = pattern[:not, current_note, :x] * 12 + pattern[:not, current_note, :y]
+        freq = midi_to_freq(midi_note)
         freq = 22050 if freq > 22050        
         wave = make_sawtooth_wave(freq)
-        filter_freq = (pattern[:sound][current_note] || 7).to_f / 16.to_f
+        filter_freq = (pattern[:snd, current_note, :y] || 8).to_f / 16.to_f
+        resonance = (pattern[:snd, current_note, :x] || 8).to_f / 4.to_f
+        volume = (pattern[:env, current_note, :y] || 10).to_f / 16.to_f
       end
     end
-    buffer[0,i] = filter.filter(sawtooth_wave(wave) * env(env), filter_freq, 3.4)
+    buffer[0,i] = filter.filter(sawtooth_wave(wave) * env(env) * volume, filter_freq, resonance)
   end
   bw.update(buffer)
   current_note = -1

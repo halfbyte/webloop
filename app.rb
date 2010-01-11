@@ -7,10 +7,19 @@ get "/" do
   redirect '/index.html'
 end
 
-post "/edit" do
+post "/edit/:type/:id" do
   yaml_file = File.join(File.dirname(__FILE__), 'pattern.yml')
   pattern = YAML.load_file(yaml_file)
-  pattern[:notes][params[:id].to_i] = params[:x].to_i * 12 + params[:y].to_i
+  puts params[:type].inspect
+  puts params[:data].inspect
+  if params[:x] && params[:y]
+    pattern[params[:type]] = [] * 16 if pattern[params[:type]].nil?
+    pattern[params[:type]][params[:id].to_i] = {} if pattern[params[:type]][params[:id].to_i].nil?
+    pattern[params[:type]][params[:id].to_i]['x'] = params[:x].to_i
+    pattern[params[:type]][params[:id].to_i]['y'] = params[:y].to_i
+  elsif params[:clear]
+    pattern[params[:type]][params[:id].to_i] = nil
+  end
   File.open(yaml_file, 'w') do |f|
     YAML.dump(pattern, f)
   end
@@ -32,4 +41,9 @@ get "/playlist.m3u8" do
     playlist = f.read
   end
   playlist
+end
+
+get '/screen.css' do
+  header 'Content-Type' => 'text/css; charset=utf-8'
+  sass :screen
 end
