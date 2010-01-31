@@ -100,6 +100,8 @@ var volInterpol = InterPol(0,100);
 var noteInterpol = InterPol(0,20);
 var noteInPattern=0;
 var posInPatttern=0;
+var env = ADEnv(0.2, 0.5, 0.3);
+var pitchEnv = ADEnv(0, 0, 0.2);
 
 function genSound(bufferSize, bufferPos) {
   var startTime = new Date().getTime();
@@ -111,8 +113,6 @@ function genSound(bufferSize, bufferPos) {
 
 
   var buffer = "";
-  var env = ADEnv(0.2, 0.5, 0.3);
-  var pitchEnv = ADEnv(0, 0, 0.2);
   var vol = 1;
 
   for(var i=0;i<bufferSize*2;i++) {
@@ -137,7 +137,7 @@ function genSound(bufferSize, bufferPos) {
        }
        posInNote = 0;
      }
-     var envVal = env.at(posInNote / (noteLengthInSamples));
+     var envVal = env.at(posInNote / (noteLengthInSamples * 4));
      if (envVal > 0) {
        var noteFreq = noteToFreq(currentNote);
        notePeriod = 44100.0 / noteFreq;
@@ -146,7 +146,7 @@ function genSound(bufferSize, bufferPos) {
        var sound = (periodPos > 0.5) ? 1.0 : -1.0;
 
        // sound = 1 - (periodPos * 2);
-       //sound = filter.process(sound, filterInterpol.get() + 0.1, qInterpol.get());
+       sound = filter.process(sound, filterInterpol.get() + 0.01, qInterpol.get());
        volInterpol.set(envVal * vol);
        sound *= volInterpol.get();
 
@@ -154,6 +154,11 @@ function genSound(bufferSize, bufferPos) {
        sound = 0;
        filter.process(sound, filterInterpol.get(), qInterpol.get()); // keeping the filter up to date
      }
+     // debugging buffer restart issues:
+     // if (i<100) {
+     //   sound += Math.random() * 0.5;
+     // }
+
      var word = Math.round((sound * 32768.0 * 0.3) + 32768.0);
      // if (word > 65536) console.log(word);
      buffer += soundbridge.encodeHex(word);
