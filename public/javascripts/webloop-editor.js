@@ -1,15 +1,17 @@
+var pe;
+
 $(function() {
 
 function patternEditor() {
 
   var that = {};
-    
+
   that.patternData = {
     not: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     snd: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     env: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
   };
-  
+
   that.emptyPattern = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 
   that.currentType = 'not';
@@ -17,13 +19,13 @@ function patternEditor() {
   var drawStep = function(id, type, xy, color, clear) {
     var ctx = $(id).get(0).getContext('2d');
     ctx.fillStyle = color; ctx.strokeStyle = color;
-    
-    console.log("drawStep for: " + type)
+
+    // console.log("drawStep for: " + type)
 
     if(clear) ctx.clearRect(0, 0, 32, 32);
-    
+
     if (!xy) return; // null guard
-    
+
     if (type == 'not') {
       ctx.strokeRect(0, 28 - (xy[1] * 2),32,4);
       ctx.fillRect(xy[0] * 2,0,2,2);
@@ -36,29 +38,29 @@ function patternEditor() {
       ctx.strokeRect(xy[0] * 2, 28,4,4);
     }
   };
-  
+
   var xyFromPattern = function(num, type) {
     if (!that.patternData[type]) return null;
     if (!that.patternData[type][num]) return null;
     x = that.patternData[type][num].x;
-    y = that.patternData[type][num].y;        
+    y = that.patternData[type][num].y;
     return [x,y]
   };
-  
+
   var drawStepFromPattern = function(num) {
     var xy = xyFromPattern(num, that.currentType);
     drawStep($('#pattern-element-' + num), that.currentType, xy, '#000', true)
   };
-  
+
   var drawEditStep = function(num, x, y) {
     var xy = xyFromPattern(num, that.currentType);
     drawStep('#detail-layer', that.currentType, xy, '#000', true);
     drawStep('#detail-layer', that.currentType, [x, y], '#FF0');
-    
+
   }
-  
+
   var checkRange = function (x,y, type) {
-    
+
     if (type == 'not') {
       if (x<0) x = 0;
       if (y<0) y = 0;
@@ -72,46 +74,46 @@ function patternEditor() {
       if (x > 15) x = 15;
       if (y > 15) y = 15;
     }
-    
-    console.log("x, y" + x + ", " + y)
+
+    // console.log("x, y" + x + ", " + y)
     return [x,y];
   };
-    
+
   var redraw = function() {
-    console.log('redraw!');
+    // console.log('redraw!');
     for(var i=0;i<16;i++) drawStepFromPattern(i);
   }
-  
+
   var updateButtons = function() {
     $('#toolbar li a').removeClass('selected');
     $('#toolbar li a#button-' + that.currentType).addClass('selected');
   }
-   
-  var reloadPattern = function() {    
+
+  var reloadPattern = function() {
     $.get('/update', {}, function(data) {
       that.patternData = data;
       redraw();
     }, 'json');
   }
-  
+
   var setPatternData = function(num, x, y) {
     if (!that.patternData[that.currentType]) that.patternData[that.currentType] = that.emptyPattern;
     if (!that.patternData[that.currentType][num]) that.patternData[that.currentType][num] = {x:0,y:0};
     that.patternData[that.currentType][num].x = x;
     that.patternData[that.currentType][num].y = y;
-    
+
     $.post('/edit/' + that.currentType + "/" + num, {x: x, y: y}, function(data) {
       redraw();
-    }, 'json');    
+    }, 'json');
   }
   var clearPatternData = function(num) {
     that.patternData[that.currentType][num] = null;
     $.post('/edit/' + that.currentType + "/" + num, {clear: true}, function(data) {
       redraw();
     }, 'json');
-    
+
   }
-  
+
   function openDetail(element) {
     var idMatch = $(element).get(0).id.match(/pattern-element-(\d+)$/)
     var id = idMatch[1];
@@ -127,7 +129,7 @@ function patternEditor() {
 
     var xy = xyFromPattern(id, that.currentType);
     drawStep($(detailLayer), that.currentType, xy, '#000', true);
-    
+
     var offset = $(element).offset();
     $('#detail-layer').css({top: "" + (offset.top - 80) + "px", left: "" + (offset.left - 80) + "px"}).show('fast').click(function(e) {
       var offset = $('#detail-layer').offset();
@@ -143,7 +145,7 @@ function patternEditor() {
 
       $(this).unbind().hide('slow');
       $('#button-delete').hide('slow').unbind();
-      
+
     }).mousemove(function(e) {
       var offset = $('#detail-layer').offset();
       var x = Math.floor((e.clientX - offset.left) / 10);
@@ -157,9 +159,9 @@ function patternEditor() {
       $('#detail-layer').hide('slow').unbind();
       clearPatternData(id);
     });
-    
+
   }
-  
+
   for(var row=0;row<4;row++) {
     var rowContent = "";
     for(var col=0;col<4;col++) {
@@ -174,27 +176,27 @@ function patternEditor() {
       openDetail(this);
     })
   }
-  
+
   $.each(['env','not','snd'], function() {
     var cur = this;
     $('#button-' + cur).click(function() {
-      console.log('switching to ' + cur);
+      // console.log('switching to ' + cur);
       that.currentType = cur;
       updateButtons();
       redraw();
     })
   })
-  
+
   redraw();
   reloadPattern();
   updateButtons();
   window.setInterval( function() {
     reloadPattern();
   }, 2000);
-  
+
   return that;
 }
 
-var pe = patternEditor();
+pe = patternEditor();
 
 });

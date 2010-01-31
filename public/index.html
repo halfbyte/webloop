@@ -2,16 +2,18 @@
 
 <html lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <script type="text/javascript" charset="utf-8" src="/javascripts/jquery-1.3.2.min.js"></script>
-	<script type="text/javascript" charset="utf-8" src="/javascripts/webloop-editor.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/soundbridge/soundbridge.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/javascripts/webloop-editor.js"></script>
+  <script type="text/javascript" charset="utf-8" src="/javascripts/webloop-player.js"></script>
   <link rel="stylesheet" href="/screen.css" type="text/css" media="screen, projection" charset="utf-8">
-	<title>webloop - an ongoing experiment</title>
-	
-	
-	
-	
-	
+  <title>webloop - an ongoing experiment</title>
+
+
+
+
+
 </head>
 
 <body>
@@ -21,16 +23,39 @@
     <div id="pattern"></div>
     <div class="right-col">right</div>
   </div>
-  
+
   <ul id="toolbar">
     <li><a href="#" id="button-env"  class="selected"><img src="/images/pattern-env.png" alt="envelope" title="envelope"/></a></li>
     <li><a href="#" id="button-not"><img src="/images/pattern-not.png" alt="notes" title="notes"/></a></li>
     <li><a href="#" id="button-mod"><img src="/images/pattern-mod.png" alt="modulation" title="modulation"/></a></li>
     <li><a href="#" id="button-snd"><img src="/images/pattern-snd.png" alt="sound" title="sound"/></a></li>
-    <li><a href="#" id="button-pan"><img src="/images/pattern-pan.png" alt="panning, delay and retrig" title="panning, delay and retrig"/></a></li>    
+    <li><a href="#" id="button-pan"><img src="/images/pattern-pan.png" alt="panning, delay and retrig" title="panning, delay and retrig"/></a></li>
   </ul>
-  <audio src="/playlist.m3u8" autoplay="autoplay" autobuffer="autobuffer" id="player"></audio>
-  
+
+  <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+          width="200"
+      height="30"
+      id="soundbridge"
+      align="middle">
+  <param name="movie" value="/soundbridge/soundbridge.swf"/>
+  <param name="allowScriptAccess" value="always" />
+  <param name="quality" value="high" />
+  <param name="scale" value="noscale" />
+  <param name="salign" value="lt" />
+  <param name="bgcolor" value="#ffffff"/>
+  <embed src="/soundbridge/soundbridge.swf"
+         bgcolor="#ffffff"
+         width="200"
+         height="30"
+         name="soundbridge"
+         quality="high"
+         align="middle"
+         allowScriptAccess="always"
+         type="application/x-shockwave-flash"
+         pluginspage="http://www.macromedia.com/go/getflashplayer" />
+  </object>
+  <a href="#" id="playButton">play</a>
+
   <div id="foot">
     &copy; <a href="http://jan.krutisch.de/">Jan Krutisch</a>. <a href="http://www.nanoloop.com/">nanoloop</a> and the nanoloop icons are &copy; Oliver Wittchow
   </div>
