@@ -4,7 +4,7 @@ body
 #edit-area
   width: 368px
   margin: 0 auto
-  #pattern 
+  #pattern
     width: 168px
     float: left
   .left-col, .right-col
@@ -14,26 +14,33 @@ body
     text-align: right
 
 #toolbar
-  clear: both
-  width: 386px
+  width: 120px
+  overflow: hidden
   margin: 0 auto
   list-style-type: none
   padding: 0
   text-align: center
+  display: block
+  clear: both
+  width:100%
   li
     display: inline
-    .selected
-      border: 2px solid black
     a
-      padding: none
+      border: 2px solid #fff
+      padding: 4px 0 0 0
       margin: none
+      display: block
+      float: left
+      &.selected
+        border: 2px solid black
+
       img
         margin:0
         padding:0
         top: 0
         left: 0
         display: inline
-      
+
 canvas
   &.pattern-element
     width: 32px
@@ -47,17 +54,19 @@ canvas
     left:0
     width: 160px
     height: 160px
-    display:block 
+    display:block
     background: #ccc
     z-index:2
-
+#player
+  text-align: center
+  margin-top: 20px
 #foot
   border-top: 1px solid black
   font-size: 0.8em
   text-align: center
   margin-top: 30px
   padding-top: 20px
-  
+
 .button-delete
   width: 16px
   height: 16px

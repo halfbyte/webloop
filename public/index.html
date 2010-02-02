@@ -21,37 +21,38 @@
   </div>
 
   <ul id="toolbar">
-    <li><a href="#" id="button-env"  class="selected"><img src="/images/pattern-env.png" alt="envelope" title="envelope"/></a></li>
+    <li><a href="#" id="button-env" class="selected"><img src="/images/pattern-env.png" alt="envelope" title="envelope"/></a></li>
     <li><a href="#" id="button-not"><img src="/images/pattern-not.png" alt="notes" title="notes"/></a></li>
     <li><a href="#" id="button-mod"><img src="/images/pattern-mod.png" alt="modulation" title="modulation"/></a></li>
     <li><a href="#" id="button-snd"><img src="/images/pattern-snd.png" alt="sound" title="sound"/></a></li>
     <li><a href="#" id="button-pan"><img src="/images/pattern-pan.png" alt="panning, delay and retrig" title="panning, delay and retrig"/></a></li>
   </ul>
 
-  <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-          width="200"
-      height="30"
-      id="soundbridge"
-      align="middle">
-  <param name="movie" value="/soundbridge/soundbridge.swf"/>
-  <param name="allowScriptAccess" value="always" />
-  <param name="quality" value="high" />
-  <param name="scale" value="noscale" />
-  <param name="salign" value="lt" />
-  <param name="bgcolor" value="#ffffff"/>
-  <embed src="/soundbridge/soundbridge.swf"
-         bgcolor="#ffffff"
-         width="200"
-         height="30"
-         name="soundbridge"
-         quality="high"
-         align="middle"
-         allowScriptAccess="always"
-         type="application/x-shockwave-flash"
-         pluginspage="http://www.macromedia.com/go/getflashplayer" />
-  </object>
-  <a href="#" id="playButton">play</a>
-
+  <div id="player">
+    <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+            width="200"
+        height="30"
+        id="soundbridge"
+        align="middle">
+    <param name="movie" value="/soundbridge/soundbridge.swf"/>
+    <param name="allowScriptAccess" value="always" />
+    <param name="quality" value="high" />
+    <param name="scale" value="noscale" />
+    <param name="salign" value="lt" />
+    <param name="bgcolor" value="#ffffff"/>
+    <embed src="/soundbridge/soundbridge.swf"
+           bgcolor="#ffffff"
+           width="200"
+           height="30"
+           name="soundbridge"
+           quality="high"
+           align="middle"
+           allowScriptAccess="always"
+           type="application/x-shockwave-flash"
+           pluginspage="http://www.macromedia.com/go/getflashplayer" />
+    </object>
+    <a href="#" id="playButton">play</a>
+  </div>
   <div id="foot">
     <p>&copy; <a href="http://jan.krutisch.de/">Jan Krutisch</a>. <a href="http://www.nanoloop.com/">nanoloop</a> and the nanoloop icons are &copy; Oliver Wittchow</p>
     <p>a project for the musichackday STHLM January 2010, due to unfortunate circumstances (harsh winter, cancelled flights, dammit) handed in from hamburg.</p>
