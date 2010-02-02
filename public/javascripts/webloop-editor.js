@@ -9,7 +9,8 @@ function patternEditor() {
   that.patternData = {
     not: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     snd: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    env: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+    env: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    mod: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
   };
 
   that.emptyPattern = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
@@ -34,6 +35,10 @@ function patternEditor() {
       ctx.strokeRect(xy[0] * 2, 28 - (xy[1] * 2),4,4);
     }
     if (type == 'env') {
+      ctx.strokeRect(0, 28 - (xy[1] * 2),4,4);
+      ctx.strokeRect(xy[0] * 2, 28,4,4);
+    }
+    if (type == 'mod') {
       ctx.strokeRect(0, 28 - (xy[1] * 2),4,4);
       ctx.strokeRect(xy[0] * 2, 28,4,4);
     }
@@ -177,7 +182,7 @@ function patternEditor() {
     })
   }
 
-  $.each(['env','not','snd'], function() {
+  $.each(['env','not','snd', 'mod'], function() {
     var cur = this;
     $('#button-' + cur).click(function() {
       // console.log('switching to ' + cur);
