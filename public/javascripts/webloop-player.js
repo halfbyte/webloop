@@ -96,12 +96,13 @@ var posInNote = 0;
 var filter = SVF();
 var filterInterpol = InterPol(1,20);
 var qInterpol = InterPol(0,20);
-var volInterpol = InterPol(0,100);
+var volInterpol = InterPol(0,20);
 var noteInterpol = InterPol(0,20);
 var noteInPattern=0;
 var posInPatttern=0;
 var env = ADEnv(0.2, 0.5, 0.3);
 var pitchEnv = ADEnv(0, 0, 0.2);
+var vol = 1;
 
 function genSound(bufferSize, bufferPos) {
   var startTime = new Date().getTime();
@@ -113,16 +114,14 @@ function genSound(bufferSize, bufferPos) {
 
 
   var buffer = "";
-  var vol = 1;
 
-  for(var i=0;i<bufferSize*2;i++) {
+  for(var i=0;i<bufferSize;i++) {
      posInPattern = (bufferPos + i) % patternLengthInSamples;
      noteInPattern = Math.floor(posInPattern / (noteLengthInSamples));
      if (posInPattern == 0) {
        currentNotePos = -1;
      }
      if (pe.patternData.not[noteInPattern] != null && (noteInPattern > currentNotePos)) {
-       console.log(pe.patternData.not[noteInPattern]);
        currentNotePos = noteInPattern;
        currentNote = (pe.patternData.not[noteInPattern].x * 12) + pe.patternData.not[noteInPattern].y;
        if (pe.patternData.env[noteInPattern]) {
@@ -140,11 +139,13 @@ function genSound(bufferSize, bufferPos) {
      var envVal = env.at(posInNote / (noteLengthInSamples * 4));
      if (envVal > 0) {
        var noteFreq = noteToFreq(currentNote);
-       notePeriod = 44100.0 / noteFreq;
-       var periodPos = ((i + bufferPos) % notePeriod) / notePeriod;
-       //var sound = Math.sin(2 * Math.PI * periodPos);
-       var sound = (periodPos > 0.5) ? 1.0 : -1.0;
 
+       // noteFreq += noteFreq * 0.5 * pitchEnv.at(posInNote / noteLengthInSamples);
+       notePeriod = 44100.0 / noteFreq;
+       var periodPos = (posInNote % notePeriod) / notePeriod;
+       //var sound = Math.sin(2 * Math.PI * periodPos);
+
+       var sound = (periodPos > 0.5) ? 1.0 : -1.0;
        // sound = 1 - (periodPos * 2);
        sound = filter.process(sound, filterInterpol.get() + 0.01, qInterpol.get());
        volInterpol.set(envVal * vol);
@@ -160,12 +161,10 @@ function genSound(bufferSize, bufferPos) {
      // }
 
      var word = Math.round((sound * 32768.0 * 0.3) + 32768.0);
-     // if (word > 65536) console.log(word);
      buffer += soundbridge.encodeHex(word);
      posInNote++;
   }
   var endTime = new Date().getTime();
-  console.log(endTime-startTime);
   return buffer;
 
 }

@@ -1,3 +1,5 @@
 public/media/*
 *.m3u8
 art
+.sass-cache
+pattern.yml
