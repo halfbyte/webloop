@@ -69,7 +69,7 @@ function patternEditor() {
     if (type == 'not') {
       if (x<0) x = 0;
       if (y<0) y = 0;
-      if (x > 8) x = 7;
+      if (x > 7) x = 7;
       if (y > 10) y = 10;
     }
 
