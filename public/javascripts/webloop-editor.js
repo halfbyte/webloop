@@ -7,11 +7,18 @@ function patternEditor() {
   var that = {};
 
   that.patternData = {
+    trg: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     not: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     snd: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     env: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     mod: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
   };
+  that.defaults = {
+    not: {x:2, y:0},
+    snd: {x:8, y:8},
+    env: {x:5, y:5},
+    mod: {x:8, y:8}
+  }
 
   that.emptyPattern = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 
@@ -24,7 +31,6 @@ function patternEditor() {
     // console.log("drawStep for: " + type)
 
     if(clear) ctx.clearRect(0, 0, 32, 32);
-
     if (!xy) return; // null guard
 
     if (type == 'not') {
@@ -39,14 +45,18 @@ function patternEditor() {
       ctx.strokeRect(xy[0] * 2, 28,4,4);
     }
     if (type == 'mod') {
-      ctx.strokeRect(0, 28 - (xy[1] * 2),4,4);
-      ctx.strokeRect(xy[0] * 2, 28,4,4);
+      ctx.strokeRect(10, 15, 12, 4);
+      ctx.strokeRect(xy[0], 28 - xy[1] * 2, 12, 4);
     }
   };
 
   var xyFromPattern = function(num, type) {
     if (!that.patternData[type]) return null;
-    if (!that.patternData[type][num]) return null;
+
+    if (!that.patternData.trg || !that.patternData.trg[num]) return null;
+    if (!that.patternData[type][num]) {
+      that.patternData[type][num] = that.defaults[type];
+    }
     x = that.patternData[type][num].x;
     y = that.patternData[type][num].y;
     return [x,y]
@@ -80,6 +90,12 @@ function patternEditor() {
       if (y > 15) y = 15;
     }
 
+    if (type == 'mod') {
+      if (x<0) x = 0;
+      if (y<0) y = 0;
+      if (x > 15) x = 15;
+      if (y > 15) y = 15;
+    }
     // console.log("x, y" + x + ", " + y)
     return [x,y];
   };
@@ -106,13 +122,16 @@ function patternEditor() {
     if (!that.patternData[that.currentType][num]) that.patternData[that.currentType][num] = {x:0,y:0};
     that.patternData[that.currentType][num].x = x;
     that.patternData[that.currentType][num].y = y;
+    if (!that.patternData.trg) that.patternData.trg = that.emptyPattern;
+    that.patternData.trg[num] = true;
 
     $.post('/edit/' + that.currentType + "/" + num, {x: x, y: y}, function(data) {
       redraw();
     }, 'json');
   }
   var clearPatternData = function(num) {
-    that.patternData[that.currentType][num] = null;
+    // that.patternData[that.currentType][num] = null;
+    that.patternData.trg[num] = null;
     $.post('/edit/' + that.currentType + "/" + num, {clear: true}, function(data) {
       redraw();
     }, 'json');
@@ -196,7 +215,7 @@ function patternEditor() {
   reloadPattern();
   updateButtons();
   window.setInterval( function() {
-    reloadPattern();
+    // reloadPattern();
   }, 2000);
 
   return that;

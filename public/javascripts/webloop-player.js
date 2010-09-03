@@ -155,13 +155,16 @@ var sequencer = function() {
        if (posInPattern == 0) {
          currentNotePos = -1;
        }
-       if (pe.patternData.not[noteInPattern] != null && (noteInPattern > currentNotePos)) {
+       if (pe.patternData.trg[noteInPattern] != null && (noteInPattern > currentNotePos)) {
          currentNotePos = noteInPattern;
+         if (pe.patternData.not[noteInPattern] == null) {
+           pe.patternData.not[noteInPattern] = {x:0, y:0};
+         }
          currentNote = (pe.patternData.not[noteInPattern].x * 12) + pe.patternData.not[noteInPattern].y;
          if (pe.patternData.mod[noteInPattern]) {
            var len = pe.patternData.mod[noteInPattern].x / 16;
            pitchEnv = ADEnv(0,0,len);
-           pitchEnvAmount = pe.patternData.mod[noteInPattern].y / 4;
+           pitchEnvAmount = (pe.patternData.mod[noteInPattern].y - 8) / 2;
          }
          if (pe.patternData.env[noteInPattern]) {
            var len = pe.patternData.env[noteInPattern].x / 16;
@@ -178,7 +181,11 @@ var sequencer = function() {
        var envVal = env.at(posInNote / (noteLengthInSamples * 4));
        if (envVal > 0) {
          var noteFreq = noteToFreq(currentNote);
-
+         if ( pitchEnvAmount > 0) {
+           noteFreq *= (pitchEnvAmount / 2) * (1 + pitchEnv.at(posInNote / noteLengthInSamples));
+         } else {
+           noteFreq /= Math.abs((pitchEnvAmount / 2) * (1 + pitchEnv.at(posInNote / noteLengthInSamples)));
+         }
          noteFreq += noteFreq * pitchEnvAmount * pitchEnv.at(posInNote / noteLengthInSamples);
          notePeriod = 44100.0 / noteFreq;
          var periodPos = (posInNote % notePeriod) / notePeriod;
