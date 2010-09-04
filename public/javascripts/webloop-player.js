@@ -205,14 +205,12 @@ var sequencer = function() {
        if (that.debug && i<100) {
          sound += Math.random() * 0.2;
        }
-
-       var word = Math.round((sound * 32768.0 * 0.2) + 32768.0);
-       buffer += soundbridge.encodeHex(word);
+       soundbridge.addToBuffer(sound);
        posInNote++;
     }
     var endTime = new Date().getTime();
     if (that.debug) console.log("update: " + (endTime-startTime) + " ms");
-    return buffer;
+    //return buffer;
 
 
   }
@@ -229,7 +227,7 @@ function genSound(bufferSize, bufferPos) {
 $(function() {
   window.setTimeout(function() {
     soundbridge = SoundBridge('soundbridge');
-    soundbridge.setCallback('genSound');
+    soundbridge.setCallback(seq.update);
     var playing = false;
     $('#playButton').click(function(e) {
       if (playing) {
