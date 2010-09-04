@@ -228,7 +228,7 @@ function genSound(bufferSize, bufferPos) {
 
 $(function() {
   window.setTimeout(function() {
-    soundbridge = SoundBridge('soundbridge');
+    soundbridge = SoundBridge();
     soundbridge.setCallback(seq.update);
     var playing = false;
     $('#playButton').click(function(e) {

@@ -13,7 +13,7 @@
 </head>
 
 <body>
-  <div id="head"><h1>Webloop</h1></div>
+  <div id="head"><h1>webloop ng</h1></div>
   <div id="edit-area">
     <div class="left-col">left</div>
     <div id="pattern"></div>
@@ -29,34 +29,13 @@
   </ul>
 
   <div id="player">
-    <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-            width="200"
-        height="30"
-        id="soundbridge"
-        align="middle">
-    <param name="movie" value="/soundbridge/soundbridge.swf"/>
-    <param name="allowScriptAccess" value="always" />
-    <param name="quality" value="high" />
-    <param name="scale" value="noscale" />
-    <param name="salign" value="lt" />
-    <param name="bgcolor" value="#ffffff"/>
-    <embed src="/soundbridge/soundbridge.swf"
-           bgcolor="#ffffff"
-           width="200"
-           height="30"
-           name="soundbridge"
-           quality="high"
-           align="middle"
-           allowScriptAccess="always"
-           type="application/x-shockwave-flash"
-           pluginspage="http://www.macromedia.com/go/getflashplayer" />
-    </object>
     <a href="#" id="playButton">play</a>
   </div>
   <div id="foot">
     <p>&copy; <a href="http://jan.krutisch.de/">Jan Krutisch</a>. <a href="http://www.nanoloop.com/">nanoloop</a> and the nanoloop icons are &copy; Oliver Wittchow</p>
-    <p>a project for the musichackday STHLM January 2010, due to unfortunate circumstances (harsh winter, cancelled flights, dammit) handed in from hamburg.</p>
-    <p>Every sound that you hear is generated in pure javascript. Since direct sound output from JS is not possible in <a href="http://weblog.bocoup.com/worlds-1st-html-audio-generated-music">most browsers</a>, the sound is handed over to a small flash applet.</p>
+    <p>a hack that was started for #musichackday STHLM 2010 and is now continued on #musichackday london 2010</p>
+    <p>Every sound that you hear is generated in pure javascript. It is output using either the <a href="http://localhost:4567">mozilla audio data api</a>,
+      the <a href="http://chromium.googlecode.com/svn/trunk/samples/audio/specification/specification.html">google web audio api</a> or a flash fallback.</p>
     <p>Fork this on <a href="http://github.com/halfbyte/webloop">github.com</a>. Please report bugs <a href="http://github.com/halfbyte/webloop/issues">here</a></p>
   </div>
 </body>

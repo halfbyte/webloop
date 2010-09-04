@@ -3,3 +3,4 @@ public/media/*
 art
 .sass-cache
 pattern.yml
+views/screen.css
