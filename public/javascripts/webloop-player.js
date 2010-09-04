@@ -139,6 +139,7 @@ var sequencer = function() {
   var pitchEnvAmount = 0;
   var vol = 1;
   var echo = Echo(44.1 * 500, 0.3);
+  var absoluteBufferPos = 0;
 
   // var osc = TableOsc();
 
@@ -150,7 +151,7 @@ var sequencer = function() {
     var buffer = "";
 
     for(var i=0;i<bufferSize;i++) {
-       posInPattern = (bufferPos + i) % patternLengthInSamples;
+       posInPattern = (absoluteBufferPos + i) % patternLengthInSamples;
        noteInPattern = Math.floor(posInPattern / (noteLengthInSamples));
        if (posInPattern == 0) {
          currentNotePos = -1;
@@ -208,6 +209,7 @@ var sequencer = function() {
        soundbridge.addToBuffer(sound);
        posInNote++;
     }
+    absoluteBufferPos += bufferSize;
     var endTime = new Date().getTime();
     if (that.debug) console.log("update: " + (endTime-startTime) + " ms");
     //return buffer;
