@@ -144,7 +144,7 @@ var SoundBridge = function() {
       soundData[bufferCounter] = sound;
       bufferCounter++;
     } else if (method === 'flash') {
-      var word = Math.round((sound * 32768.0 * 0.2) + 32768.0);
+      var word = Math.round((sound * 32768.0 * 0.5) + 32768.0);
       buffer += soundbridge.encodeHex(word);      
     }
     

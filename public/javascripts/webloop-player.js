@@ -18,21 +18,29 @@ var ADEnv = function(a, h, d) {
 
   var that = {};
 
-  if (a == 0) a = 0.000001; // no div/0 errors
-  if (d == 0) d = 0.000001;
-
   that.at = function(pos) {
-    if (pos <= a) {
+    if (a > 0 && pos <= a) {
       return pos/a;
     } else if (pos <= (a + h) ) {
       return 1;
-    } else if (pos <= (a + h + d) ) {
+    } else if (d > 0 && pos <= (a + h + d) ) {
       return(1 - ((pos - (a + h))/d));
     }
     return 0;
   };
   return that;
 
+};
+
+var Decay = function(d) {
+  var that = {};
+  that.at = function(pos) {
+    if (d > 0 && pos < d) {
+      return Math.abs(1 - (pos / d));
+    }
+    return 0;    
+  };
+  return that;
 };
 
 var Echo = function(delay, amount) {
@@ -48,7 +56,7 @@ var Echo = function(delay, amount) {
     return output;
   };
   return that;
-}
+};
 
 var TableOsc = function() {
   var that = {};
@@ -63,12 +71,15 @@ var TableOsc = function() {
   };
 
   return that;
-}
+};
 
-var osc = TableOsc();
-for(i=0;i<32;i++) {
-  osc.data[i] = i < 16 ? -1 : 1;
-}
+var NoiseOsc = function() {
+  var that = {};
+  that.at = function(periodPos) {
+    return (Math.random() * 2) - 1;
+  };
+  return that;
+};
 
 function InterPol(init, smoothness) {
   var val = init;
@@ -82,20 +93,20 @@ function InterPol(init, smoothness) {
       count--;
     }
     return val;
-  }
+  };
   that.set = function(newVal) {
     target = newVal;
     var diff = newVal - val;
     delta = diff / smoothness;
     count = smoothness;
-  }
+  };
   return that;
-}
+};
 
-function noteToFreq(note) {
+var noteToFreq = function(note) {
     return Music.notes[note];
     // return 440.0 * ( Math.pow(2.0,((note - 69.0) / 12)));
-}
+};
 
 var SVF = function() {
   var that = {};
@@ -117,29 +128,40 @@ var SVF = function() {
     return out4;
   };
   return that;
-}
+};
+
+var Track = function(name, osc) {
+  var that = {
+    name: name,
+    currentNotePos: -1,
+    currentNote: 0,
+    posInNote: 0,
+    filter: SVF(),
+    filterInterpol: InterPol(1,20),
+    qInterpol: InterPol(0,20),
+    volInterpol: InterPol(0,20),
+    noteInterpol: InterPol(0,20),
+    env: ADEnv(0.2, 0.5, 0.3),
+    pitchEnv: Decay(0.8),
+    pitchEnvAmount: 0.9,
+    vol: 1,
+    osc: osc
+  };
+  return that;
+};
 
 var sequencer = function() {
   var that = {};
   that.tempo = 120;
   that.debug = false;
 
-  var currentNotePos = -1;
-  var currentNote = 0;
-  var posInNote = 0;
-  var filter = SVF();
-  var filterInterpol = InterPol(1,20);
-  var qInterpol = InterPol(0,20);
-  var volInterpol = InterPol(0,20);
-  var noteInterpol = InterPol(0,20);
-  var noteInPattern=0;
-  var posInPatttern=0;
-  var env = ADEnv(0.2, 0.5, 0.3);
-  var pitchEnv = ADEnv(0, 0, 0.4);
-  var pitchEnvAmount = 0;
-  var vol = 1;
   var echo = Echo(44.1 * 500, 0.3);
   var absoluteBufferPos = 0;
+  var tracks = [Track('l', TableOsc()),Track('r', TableOsc()),Track('s', TableOsc()), Track('n', NoiseOsc())];
+  var indicatorNotePos = -1;
+  
+  // if 
+  // var canvas = document.getElementById('debug').getContext("2d");
 
   // var osc = TableOsc();
 
@@ -147,86 +169,138 @@ var sequencer = function() {
     var startTime = new Date().getTime();
     var beatFreq = that.tempo / 60.0;
     var patternLengthInSamples = 4 * 44100 / beatFreq;
-    var noteLengthInSamples = patternLengthInSamples / 16;
-    var buffer = "";
-
+    var noteLengthInSamples = patternLengthInSamples / 16;    
+    
+    var numTracks = tracks.length;
+    
     for(var i=0;i<bufferSize;i++) {
-       posInPattern = (absoluteBufferPos + i) % patternLengthInSamples;
-       noteInPattern = Math.floor(posInPattern / (noteLengthInSamples));
-       if (posInPattern == 0) {
-         currentNotePos = -1;
-       }
-       if (pe.patternData.trg[noteInPattern] != null && (noteInPattern > currentNotePos)) {
-         currentNotePos = noteInPattern;
-         if (pe.patternData.not[noteInPattern] == null) {
-           pe.patternData.not[noteInPattern] = {x:0, y:0};
+      var mixer = [];
+      var posInPattern = (absoluteBufferPos + i) % patternLengthInSamples;
+      var noteInPattern = Math.floor(posInPattern / (noteLengthInSamples));
+      if (posInPattern === 0) {
+        indicatorNotePos = -1;
+      }
+      if (noteInPattern > indicatorNotePos) {
+        pe.highlightStep(noteInPattern);
+        indicatorNotePos = noteInPattern;
+      } 
+      for (var tr = 0; tr < numTracks; tr++) {
+        var track = tracks[tr];
+        if (posInPattern == 0) {
+         track.currentNotePos = -1;
+        }
+        if (pe.patternData.get(track.name, 'trg', noteInPattern) && (noteInPattern > track.currentNotePos)) {
+         
+         track.currentNotePos = noteInPattern;
+         var not = pe.patternData.get(track.name, 'not', noteInPattern);
+         track.currentNote = (not.x * 12) + not.y;
+         var mod = pe.patternData.get(track.name, 'mod', noteInPattern);
+         if (mod) {
+           var llen = (mod.x / 16);
+           track.pitchEnv = Decay(llen);
+           track.pitchEnvAmount = (mod.y - 8)/ 8;
          }
-         currentNote = (pe.patternData.not[noteInPattern].x * 12) + pe.patternData.not[noteInPattern].y;
-         if (pe.patternData.mod[noteInPattern]) {
-           var len = pe.patternData.mod[noteInPattern].x / 16;
-           pitchEnv = ADEnv(0,0,len);
-           pitchEnvAmount = (pe.patternData.mod[noteInPattern].y - 8) / 2;
+         var env = pe.patternData.get(track.name, 'env', noteInPattern);
+         if (env) {
+           var nlen = env.x / 16;
+           track.env = ADEnv(0,0,nlen);
+           track.vol = env.y / 16;
          }
-         if (pe.patternData.env[noteInPattern]) {
-           var len = pe.patternData.env[noteInPattern].x / 16;
-           env = ADEnv(0,0,len);
-           vol = pe.patternData.env[noteInPattern].y / 16;
+         var snd = pe.patternData.get(track.name, 'snd', noteInPattern);
+         if (snd) {
+           var fnew = snd.y / 16;
+           track.filterInterpol.set(fnew + 0.05);
+           track.qInterpol.set(snd.x / 16 * 3);
          }
-         if (pe.patternData.snd[noteInPattern]) {
-           var fnew = pe.patternData.snd[noteInPattern].y / 16;
-           filterInterpol.set(fnew);
-           qInterpol.set(pe.patternData.snd[noteInPattern].x / 16 * 3);
+         track.posInNote = 0;
+        }
+        var envVal = track.env.at(track.posInNote / (noteLengthInSamples * 4));
+        
+        if (envVal > 0) {
+          
+         var noteFreq = noteToFreq(track.currentNote);
+        
+         
+         var oldFreq = noteFreq;
+         var pEnv = track.pitchEnv.at(track.posInNote / (noteLengthInSamples * 2));
+         var pFactor = (1 + (2* Math.abs(track.pitchEnvAmount) * pEnv));
+
+
+         if (track.pitchEnvAmount >= 0) {
+           noteFreq *= pFactor;
+         } else if (track.pitchEnvAmount < 0) {
+           noteFreq /= Math.abs(pFactor);
          }
-         posInNote = 0;
-       }
-       var envVal = env.at(posInNote / (noteLengthInSamples * 4));
-       if (envVal > 0) {
-         var noteFreq = noteToFreq(currentNote);
-         if ( pitchEnvAmount > 0) {
-           noteFreq *= (pitchEnvAmount / 2) * (1 + pitchEnv.at(posInNote / noteLengthInSamples));
-         } else {
-           noteFreq /= Math.abs((pitchEnvAmount / 2) * (1 + pitchEnv.at(posInNote / noteLengthInSamples)));
-         }
-         noteFreq += noteFreq * pitchEnvAmount * pitchEnv.at(posInNote / noteLengthInSamples);
+
+
+         // noteFreq += noteFreq * pitchEnvAmount * pitchEnv.at(posInNote / noteLengthInSamples);
          notePeriod = 44100.0 / noteFreq;
-         var periodPos = (posInNote % notePeriod) / notePeriod;
-         sound = osc.at(periodPos);
-         sound = filter.process(sound, filterInterpol.get() + 0.01, qInterpol.get());
-         volInterpol.set(envVal * vol);
-         sound *= volInterpol.get();
+         var periodPos = (track.posInNote % notePeriod) / notePeriod;
 
-       } else {
+         
+
+         // if (currentNotePos === 0) {
+         //   if (track.posInNote === 0)
+         //    //canvas.clearRect(0,0,400,200);
+         //  
+         //   var envPos = track.posInNote / (noteLengthInSamples * 4);
+         //   // canvas.globalAlpha = 0.5;
+         //   // canvas.fillStyle = "#000";
+         //   // canvas.fillRect(posInNote / 50, noteFreq, 1, 1);           
+         //   // canvas.fillStyle = "#f00";
+         //   // canvas.fillRect(posInNote / 50, periodPos * 200, 1, 1);           
+         // }
+
+
+
+         //sound = periodPos;
+         sound = track.osc.at(periodPos);
+         sound = track.filter.process(sound, track.filterInterpol.get() + 0.01, track.qInterpol.get());
+         track.volInterpol.set(envVal * track.vol);
+         sound *= track.volInterpol.get();
+
+        } else {
          sound = 0;
-         filter.process(sound, filterInterpol.get(), qInterpol.get()); // keeping the filter up to date
-       }
+         track.filter.process(sound, track.filterInterpol.get(), track.qInterpol.get()); // keeping the filter up to date
+        }
 
-       //sound += echo.process(sound);
+        //sound += echo.process(sound);
 
-       // debugging buffer restart issues:
-       if (that.debug && i<100) {
-         sound += Math.random() * 0.2;
-       }
-       soundbridge.addToBuffer(sound);
-       posInNote++;
+        // debugging buffer restart issues:
+        // if (that.debug && i<100) {
+        //  sound += Math.random() * 0.2;
+        // }
+        track.posInNote++;
+        mixer.push(sound);
+        
+        
+      }
+      var mixerLen = mixer.length;
+      var mixerValue = 0.0;
+      for(t=0;t<mixerLen;t++) {
+        mixerValue += (mixer[t] * (1/mixerLen));
+      }
+      
+      soundbridge.addToBuffer(mixerValue);
+      //soundbridge.addToBuffer(mixerValue);
+      
     }
     absoluteBufferPos += bufferSize;
     var endTime = new Date().getTime();
     if (that.debug) console.log("update: " + (endTime-startTime) + " ms");
-    //return buffer;
+  };
 
-
-  }
-
-return that;
+  return that;
 };
 
-var seq = sequencer();
 
 function genSound(bufferSize, bufferPos) {
   return seq.update(bufferSize, bufferPos);
 }
 
 $(function() {
+  var seq = sequencer();
+
   window.setTimeout(function() {
     soundbridge = SoundBridge();
     soundbridge.setCallback(seq.update);

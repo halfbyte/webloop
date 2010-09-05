@@ -20,6 +20,29 @@ body
     color: #fff
     text-align: center
 
+#debug
+  border: 1px solid red
+  display: none
+
+ul#channels
+  list-style-type: none
+  margin: 0
+  padding: 0
+  li
+    margin: 0
+    padding 10px
+    a.active
+      font-weight: bold
+
+
+ul#functions
+  list-style-type: none
+  margin: 0
+  padding: 0
+  li
+    margin: 0
+    padding: 10px
+
 #toolbar
   width: 120px
   overflow: hidden
@@ -54,6 +77,8 @@ canvas
     background: #ccc
     margin: 5px
     padding: 0
+    &.active
+      background: #eee
   &#detail-layer
     position: absolute
     top: 0
@@ -66,6 +91,7 @@ canvas
 #player
   text-align: center
   margin-top: 20px
+
 #foot
   border-top: 1px solid black
   font-size: 0.8em

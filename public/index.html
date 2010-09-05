@@ -15,9 +15,20 @@
 <body>
   <div id="head"><h1>webloop ng</h1></div>
   <div id="edit-area">
-    <div class="left-col">left</div>
+    <div class="left-col">
+      <ul id="channels">
+        <li><a href="#" id="channel-l">L</a></li>
+        <li><a href="#" id="channel-r">R</a></li>
+        <li><a href="#" id="channel-s">S</a></li>
+        <li><a href="#" id="channel-n">N</a></li>
+      </ul>
+    </div>
     <div id="pattern"></div>
-    <div class="right-col">right</div>
+    <div class="right-col">
+      <ul id="functions">
+        <li>[<a href="#" id="button-clear">clear</a>]</li>
+      </ul>
+    </div>
   </div>
 
   <ul id="toolbar">
@@ -31,6 +42,8 @@
   <div id="player">
     <a href="#" id="playButton">play</a>
   </div>
+
+
   <div id="foot">
     <p>&copy; <a href="http://jan.krutisch.de/">Jan Krutisch</a>. <a href="http://www.nanoloop.com/">nanoloop</a> and the nanoloop icons are &copy; Oliver Wittchow</p>
     <p>a hack that was started for #musichackday STHLM 2010 and is now continued on #musichackday london 2010</p>

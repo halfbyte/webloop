@@ -2,33 +2,102 @@ var pe;
 
 $(function() {
 
-function patternEditor() {
-
+var PatternData = function() {
   var that = {};
-
-  that.patternData = {
-    trg: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    not: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    snd: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    env: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    mod: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
-  };
-  that.defaults = {
+  var patternData = {};
+  var defaultValues = {
     not: {x:2, y:0},
     snd: {x:8, y:8},
     env: {x:5, y:5},
     mod: {x:8, y:8}
-  }
+  };
+  
+  var defaultData = function(track, type, num) {
+    if (typeof (patternData[track]) === 'undefined') patternData[track] = {};
+    if (typeof (patternData[track][type]) === 'undefined')
+      patternData[track][type] = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
+    if (typeof patternData[track].trg === 'undefined')
+      patternData[track].trg = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
+    if (typeof (patternData[track][type][num]) === 'undefined' || patternData[track][type][num] === null) {
+      if (type == 'trg') {
+        patternData[track][type][num] = false;
+      } else {
+        if (patternData[track].trg[num] === true) {
+          patternData[track][type][num] = defaultValues[type];
+        }
+      }
+    }
+  };
+  
+  that.dump = function() {
+    console.log(patternData);
+  };
+  
+  that.get = function(track, type, num) { 
+    defaultData(track, type, num);
+    if (patternData[track].trg[num]) {
+      return patternData[track][type][num];  
+    } else {
+      return null;
+    }
+    
+  };
+  
+  that.set = function(track, type, num, data, callback) {
+    defaultData(track, type, num);
+    patternData[track][type][num] = data;
+    patternData[track].trg[num] = true;
+    $.post('/edit/' + track + "/" + type + "/" + num, data, function(data) {
+      if(typeof callback !== 'undefined') callback();
+    }, 'json');
+    
+  };
+  that.clr = function(track, type, num, callback) {
+    defaultData(track, type, num);
+    patternData[track][type][num] = null;
+    patternData[track].trg[num] = false;
+    $.post('/edit/' + track + "/" + type + "/" + num, {clear: true}, function(data) {
+      if(typeof callback !== 'undefined') callback();
+    }, 'json');
+    
+  };
+  
+  that.clearRow = function(track, type, callback) {
+    if (!patternData[track]) patternData[track] = {};
+    patternData[track].trg = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
+    $.post('/clear/' + track + "/" + type, null, function(data) {
+      if(typeof callback !== 'undefined') callback();
+    }, 'json');
+  };
+  
+  that.updateFromRemote = function(callback) {
+    $.get('/update', {}, function(data) {
+      patternData = data;
+      if (typeof callback !== 'undefined') callback();
+    }, 'json');
+  };
+  return that;
+};
 
-  that.emptyPattern = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 
+var patternEditor = function() {
+
+  var that = {};
+
+  that.patternData = PatternData();
   that.currentType = 'not';
+  that.currentTrack = 'l';
+  
+  that.highlightStep = function(num) {
+    $('.pattern-element').removeClass('active');
+    $('#pattern-element-' + num).addClass('active');
+  };
+
 
   var drawStep = function(id, type, xy, color, clear) {
     var ctx = $(id).get(0).getContext('2d');
     ctx.fillStyle = color; ctx.strokeStyle = color;
 
-    // console.log("drawStep for: " + type)
 
     if(clear) ctx.clearRect(0, 0, 32, 32);
     if (!xy) return; // null guard
@@ -50,29 +119,28 @@ function patternEditor() {
     }
   };
 
-  var xyFromPattern = function(num, type) {
-    if (!that.patternData[type]) return null;
 
-    if (!that.patternData.trg || !that.patternData.trg[num]) return null;
-    if (!that.patternData[type][num]) {
-      that.patternData[type][num] = that.defaults[type];
+  var xyFromCurrentPattern = function(num) {
+    var data = that.patternData.get(that.currentTrack, that.currentType, num);
+    if (data) {
+      return [data.x, data.y];
+    } else {
+      return null;
     }
-    x = that.patternData[type][num].x;
-    y = that.patternData[type][num].y;
-    return [x,y]
+    
   };
 
   var drawStepFromPattern = function(num) {
-    var xy = xyFromPattern(num, that.currentType);
-    drawStep($('#pattern-element-' + num), that.currentType, xy, '#000', true)
+    var xy = xyFromCurrentPattern(num);
+    drawStep($('#pattern-element-' + num), that.currentType, xy, '#000', true);
   };
 
   var drawEditStep = function(num, x, y) {
-    var xy = xyFromPattern(num, that.currentType);
+    var xy = xyFromCurrentPattern(num);
     drawStep('#detail-layer', that.currentType, xy, '#000', true);
     drawStep('#detail-layer', that.currentType, [x, y], '#FF0');
 
-  }
+  };
 
   var checkRange = function (x,y, type) {
 
@@ -96,62 +164,47 @@ function patternEditor() {
       if (x > 15) x = 15;
       if (y > 15) y = 15;
     }
-    // console.log("x, y" + x + ", " + y)
     return [x,y];
   };
 
   var redraw = function() {
-    // console.log('redraw!');
     for(var i=0;i<16;i++) drawStepFromPattern(i);
-  }
+  };
 
   var updateButtons = function() {
     $('#toolbar li a').removeClass('selected');
     $('#toolbar li a#button-' + that.currentType).addClass('selected');
-  }
+  };
 
   var reloadPattern = function() {
-    $.get('/update', {}, function(data) {
-      that.patternData = data;
-      redraw();
-    }, 'json');
-  }
+    that.patternData.updateFromRemote(redraw);
+  };
 
   var setPatternData = function(num, x, y) {
-    if (!that.patternData[that.currentType]) that.patternData[that.currentType] = that.emptyPattern;
-    if (!that.patternData[that.currentType][num]) that.patternData[that.currentType][num] = {x:0,y:0};
-    that.patternData[that.currentType][num].x = x;
-    that.patternData[that.currentType][num].y = y;
-    if (!that.patternData.trg) that.patternData.trg = that.emptyPattern;
-    that.patternData.trg[num] = true;
-
-    $.post('/edit/' + that.currentType + "/" + num, {x: x, y: y}, function(data) {
-      redraw();
-    }, 'json');
-  }
+    that.patternData.set(that.currentTrack, that.currentType, num, {x: x, y: y}, redraw);
+  };
   var clearPatternData = function(num) {
-    // that.patternData[that.currentType][num] = null;
-    that.patternData.trg[num] = null;
-    $.post('/edit/' + that.currentType + "/" + num, {clear: true}, function(data) {
-      redraw();
-    }, 'json');
-
-  }
+    that.patternData.clr(that.currentTrack, that.currentType, num, redraw);
+  };
+  
+  var clearRow = function() {
+    that.patternData.clearRow(that.currentTrack, that.currentType, redraw);
+  };
 
   function openDetail(element) {
-    var idMatch = $(element).get(0).id.match(/pattern-element-(\d+)$/)
+    var idMatch = $(element).get(0).id.match(/pattern-element-(\d+)$/);
     var id = idMatch[1];
 
     var detailLayer = $('#detail-layer').get(0);
     if (!detailLayer) {
      $('body').append("<canvas id='detail-layer' width='32' height='32' style='display:hidden'></canvas>");
-     $('body').append("<a href='#' class='button-delete' id='button-delete' style='display:hidden'>x</a>")
+     $('body').append("<a href='#' class='button-delete' id='button-delete' style='display:hidden'>x</a>");
      detailLayer = $('#detail-layer').get(0);
     } else {
       $('#detail-layer').unbind();
     }
 
-    var xy = xyFromPattern(id, that.currentType);
+    var xy = xyFromCurrentPattern(id);
     drawStep($(detailLayer), that.currentType, xy, '#000', true);
 
     var offset = $(element).offset();
@@ -163,9 +216,9 @@ function patternEditor() {
       x = xy[0]; y = xy[1];
       var pData = setPatternData(id, x, y);
 
-      var xy = xyFromPattern(id, that.currentType);
+      xy = xyFromCurrentPattern(id);
       drawStep($(this), that.currentType, xy, '#000', true);
-      drawStepFromPattern(id, that.currentType);
+      drawStepFromPattern(id);
 
       $(this).unbind().hide('slow');
       $('#button-delete').hide('slow').unbind();
@@ -184,7 +237,7 @@ function patternEditor() {
       clearPatternData(id);
     });
 
-  }
+  };
 
   for(var row=0;row<4;row++) {
     var rowContent = "";
@@ -192,35 +245,52 @@ function patternEditor() {
       rowContent += "<canvas width='32' height='32' class=\"pattern-element\" id=\"pattern-element-" + ((row * 4) + col ) + "\"></canvas>";
     }
     rowContent = "<div class='row'>" + rowContent + "</div>";
-    $('#pattern').append(rowContent)
+    $('#pattern').append(rowContent);
   }
 
   for(var i=0;i<16;i++) {
     $("#pattern-element-" + i).click(function(e) {
       openDetail(this);
-    })
+    });
   }
 
   $.each(['env','not','snd', 'mod'], function() {
     var cur = this;
     $('#button-' + cur).click(function() {
-      // console.log('switching to ' + cur);
       that.currentType = cur;
       updateButtons();
       redraw();
-    })
-  })
+    });
+  });
+  
+  $("#channels li a").click(function() {
+    var channel = this.id.match(/channel\-(\w{1})/)[1];
+    that.currentTrack = channel;
+    $("#channels li a").removeClass('active');
+    $(this).addClass("active");
+    redraw();
+    return false;
+  });
+  
+  $("#button-clear").click(function() {
+    var row = that.patternData.clearRow(that.currentTrack, that.currentType, redraw);
+    return false;
+  });
+  
+  $("#channel-l").addClass("active");
 
   redraw();
   reloadPattern();
   updateButtons();
-  window.setInterval( function() {
-    // reloadPattern();
-  }, 2000);
+  // window.setInterval( function() {
+  //   //reloadPattern();
+  // }, 2000);
 
   return that;
-}
+};
 
 pe = patternEditor();
-
+window.setInterval(function() {
+  pe.patternData.dump();
+}, 2000);
 });
