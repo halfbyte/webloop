@@ -51,12 +51,12 @@ post "/room/new" do
 end
 
 get "/rooms/:room" do
-  @room = database['rooms'].find_one(BSON::ObjectID.from_string(params[:room]));
+  @room = database['rooms'].find_one(BSON::ObjectId.from_string(params[:room]));
   haml :room
 end
 
 post "/clear/:room/:track/:type" do
-  objId = BSON::ObjectID.from_string(params[:room])
+  objId = BSON::ObjectId.from_string(params[:room])
   @room = database['rooms'].find_one(objId)
   @room[params[:track]] = {} if @room[params[:track]].nil?
   @room[params[:track]][params[:type]] = [nil] * 16
@@ -71,7 +71,7 @@ post "/edit/:room/:track/:type/:id" do
   track = params[:track]
   type = params[:type]
   id = params[:id].to_i
-  objId = BSON::ObjectID.from_string(params[:room])
+  objId = BSON::ObjectId.from_string(params[:room])
   @room = database['rooms'].find_one(objId)
     
   @room[track][type] = [nil] * 16 if @room[track][type].empty?
@@ -90,7 +90,7 @@ post "/edit/:room/:track/:type/:id" do
 end
 
 get "/update/:room" do
-  @room = database['rooms'].find_one(BSON::ObjectID.from_string(params[:room]))
+  @room = database['rooms'].find_one(BSON::ObjectId.from_string(params[:room]))
   content_type 'application/json'
   @room.to_json
 end
