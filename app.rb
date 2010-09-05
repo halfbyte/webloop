@@ -7,14 +7,13 @@ require 'mongo'
 
 database = nil
 config = {
-  'host' => 'localhost',
-  'database' => 'webloop'
+  'uri' => 'mongodb://localhost',
 }
 config_path = File.join(File.dirname(__FILE__), 'mongodb.yml');
 if (File.exist?(config_path))
   config = config.merge(YAML.load_file(config_path))
 end
-database = Mongo::Connection.from_uri("mongodb://#{config['username']}:#{config['password']}@#{config['host']}/#{database}").db('webloop');
+database = Mongo::Connection.from_uri(config['uri']).db('webloop');
 
 
 DEFAULTS = {
