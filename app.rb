@@ -3,57 +3,96 @@ require 'sinatra'
 require 'yaml'
 require 'json'
 require 'haml'
+require 'mongo'
+
+database = nil
+config = {
+  'host' => 'localhost',
+}
+config_path = File.join(File.dirname(__FILE__), 'mongodb.yml');
+if (File.exist?(config_path))
+  config = config.merge(YAML.load_file(config_path))
+end
+database = Mongo::Connection.from_uri("mongodb://#{config['username']}:#{config['password']}@#{config['host']}").db('webloop');
+
+
+DEFAULTS = {
+  :not => {:x => 2, :y => 0},
+  :snd => {:x => 8, :y => 8},
+  :env => {:x => 5, :y => 5},
+  :mod => {:x => 8, :y => 8},
+  :trg => false
+}
+
+EMPTY_TRACK = {
+  :trg => [false] * 16,
+  :snd => [nil] * 16,
+  :env => [nil] * 16,
+  :not => [nil] * 16,
+  :mod => [nil] * 16
+}
 
 get "/" do
-  redirect '/index.html'
+  @rooms = database['rooms'].find();
+  haml :index
 end
 
-post "/clear/:track/:type" do
-  yaml_file = File.join(File.dirname(__FILE__), 'pattern.yml')
-  pattern = YAML.load_file(yaml_file)
-  puts params[:track].inspect
-  puts params[:type].inspect
-  pattern[params[:track]] = {} if pattern[params[:track]].nil?
-  pattern[params[:track]][params[:type]] = [] * 16
-  pattern[params[:track]]['trg'] = [] * 16
-  File.open(yaml_file, 'w') do |f|
-    YAML.dump(pattern, f)
-  end
-  content_type 'application/json'
-  pattern.to_json
+post "/room/new" do
+  name = params[:name]
+  room = {
+    :name => params[:name],
+    :l => EMPTY_TRACK,
+    :r => EMPTY_TRACK,
+    :s => EMPTY_TRACK,
+    :n => EMPTY_TRACK
+  }
+  id = database['rooms'].save(room);
+  redirect "/rooms/#{id}"
 end
 
-post "/edit/:track/:type/:id" do
-  yaml_file = File.join(File.dirname(__FILE__), 'pattern.yml')
-  pattern = YAML.load_file(yaml_file)
-  puts params[:track].inspect
-  puts params[:type].inspect
-  puts params[:data].inspect
-  if params[:x] && params[:y]
-    pattern[params[:track]] = {} if pattern[params[:track]].nil?
-    pattern[params[:track]]['trg'] = [] * 16 if pattern[params[:track]]['trg'].nil?
-    pattern[params[:track]]['trg'][params[:id].to_i] = true
-    pattern[params[:track]][params[:type]] = [] * 16 if pattern[params[:track]][params[:type]].nil?
-    pattern[params[:track]][params[:type]][params[:id].to_i] = {} if pattern[params[:track]][params[:type]][params[:id].to_i].nil?
-    pattern[params[:track]][params[:type]][params[:id].to_i]['x'] = params[:x].to_i
-    pattern[params[:track]][params[:type]][params[:id].to_i]['y'] = params[:y].to_i
-  elsif params[:clear]
-    pattern[params[:track]][params[:type]][params[:id].to_i] = nil
-    pattern[params[:track]]['trg'] = [] * 16 if pattern['trg'].nil?
-    pattern[params[:track]]['trg'][params[:id].to_i] = nil
-  end
-  File.open(yaml_file, 'w') do |f|
-    YAML.dump(pattern, f)
-  end
-  content_type 'application/json'
-  pattern.to_json
+get "/rooms/:room" do
+  @room = database['rooms'].find_one(BSON::ObjectID.from_string(params[:room]));
+  haml :room
 end
 
-get "/update" do
-  yaml_file = File.join(File.dirname(__FILE__), 'pattern.yml')
-  pattern = YAML.load_file(yaml_file)
+post "/clear/:room/:track/:type" do
+  objId = BSON::ObjectID.from_string(params[:room])
+  @room = database['rooms'].find_one(objId)
+  @room[params[:track]] = {} if @room[params[:track]].nil?
+  @room[params[:track]][params[:type]] = [nil] * 16
+  @room[params[:track]]['trg'] = [nil] * 16
+  database['rooms'].save(@room)
+
   content_type 'application/json'
-  pattern.to_json
+  @room.to_json
+end
+
+post "/edit/:room/:track/:type/:id" do
+  track = params[:track]
+  type = params[:type]
+  id = params[:id].to_i
+  objId = BSON::ObjectID.from_string(params[:room])
+  @room = database['rooms'].find_one(objId)
+    
+  @room[track][type] = [nil] * 16 if @room[track][type].empty?
+  @room[track]['trg'] = [false] * 16 if @room[track]['trg'].empty?
+  if params[:clear]
+    @room[track][type][id] = nil
+    @room[track]['trg'][id] = false
+  else
+    @room[track][type][id] = {:x => params[:x].to_i, :y => params[:y].to_i}
+    @room[track]['trg'][id] = true
+  end  
+  database['rooms'].save(@room, :safe => true)
+
+  content_type 'application/json'
+  @room.to_json
+end
+
+get "/update/:room" do
+  @room = database['rooms'].find_one(BSON::ObjectID.from_string(params[:room]))
+  content_type 'application/json'
+  @room.to_json
 end
 
 get '/screen.css' do

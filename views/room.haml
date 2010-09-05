@@ -1,0 +1,24 @@
+%h2 Room: #{@room['name']}
+
+#edit-area(data-room-id="#{@room['_id']}")
+  .left-col
+    %ul#channels
+      - %w(l r s n).each do |ch|
+        %li
+          %a(id="channel-#{ch}" href="#")#{ch.upcase}
+  #pattern
+  .right-col
+    %ul#functions
+      %li
+        %a#button-clear(href="#") [clear]
+
+
+  %ul#toolbar
+    <li><a href="#" id="button-env" class="selected"><img src="/images/pattern-env.png" alt="envelope" title="envelope"/></a></li>
+    <li><a href="#" id="button-not"><img src="/images/pattern-not.png" alt="notes" title="notes"/></a></li>
+    <li><a href="#" id="button-mod"><img src="/images/pattern-mod.png" alt="modulation" title="modulation"/></a></li>
+    <li><a href="#" id="button-snd"><img src="/images/pattern-snd.png" alt="sound" title="sound"/></a></li>
+    <li><a href="#" id="button-pan"><img src="/images/pattern-pan.png" alt="panning, delay and retrig" title="panning, delay and retrig"/></a></li>
+
+  #player
+    %a#playButton(href="#") play

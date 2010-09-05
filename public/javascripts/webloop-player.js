@@ -157,13 +157,13 @@ var Track = function(name, osc) {
     currentNote: 0,
     posInNote: 0,
     filter: SVF(),
-    filterInterpol: InterPol(1,20),
+    filterInterpol: InterPol(0.8,10),
     qInterpol: InterPol(0,10),
     volInterpol: InterPol(0,10),
     noteInterpol: InterPol(0,10),
-    envD: 0,
-    pitchEnvD: 0,
-    pitchEnvAmount: 0.9,
+    envD: 0.5,
+    pitchEnvD: 0.2,
+    pitchEnvAmount: 0.0,
     vol: 1,
     osc: osc
   };
@@ -195,7 +195,7 @@ var sequencer = function() {
       //   indicatorNotePos = -1;
       // }
       // if (noteInPattern > indicatorNotePos) {
-      //   //pe.highlightStep(noteInPattern);
+      //   pe.highlightStep(noteInPattern);
       //   indicatorNotePos = noteInPattern;
       // } 
       var mixerValue = 0;
@@ -206,6 +206,7 @@ var sequencer = function() {
         }
         var trackData = null;
         if ((noteInPattern > track.currentNotePos) && (trackData = pe.patternData.at(track.name, noteInPattern))) {
+          // if (i === 0) console.log("td", trackData);
          track.currentNotePos = noteInPattern;
          track.currentNote = (trackData.not.x * 12) + trackData.not.y;
 
@@ -225,10 +226,13 @@ var sequencer = function() {
          }
          track.posInNote = 0;
         }
+        
+        
         var envPos= track.posInNote / (noteLengthInSamples * 2);
         var envPosDouble = envPos / 2;
         
         var envVal = 0;
+        
         if (envPosDouble < track.envD) {
           envVal = 1 - (envPosDouble / track.envD);
           var noteFreq = noteToFreq(track.currentNote);
@@ -243,7 +247,6 @@ var sequencer = function() {
           }
           notePeriod = 44100.0 / noteFreq;
           var periodPos = (track.posInNote % notePeriod) / notePeriod;
-
           if (track.osc === 1) {
             sound = periodPos > 0.5 ? 1.0 : -1.0;
           } else if (track.osc === 2) {
@@ -251,7 +254,6 @@ var sequencer = function() {
           } else if (track.osc === 3) {
             sound = Math.random() * 2 - 1;
           }
-
           track.volInterpol.set(envVal * track.vol);
           sound = track.filter.process(sound, track.filterInterpol.get(), track.qInterpol.get());
           sound *= track.volInterpol.get();

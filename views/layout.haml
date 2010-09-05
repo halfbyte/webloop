@@ -1,0 +1,29 @@
+!!!
+%html
+  %head
+    %title Webloop, an ongoing experiment in web audio and collaboration
+    %meta(http-equiv="Content-Type" content="text/html; charset=utf-8")
+
+    %script(type="text/javascript" charset="utf-8" src="/javascripts/jquery-1.3.2.min.js")
+    %script(type="text/javascript" charset="utf-8" src="/soundbridge/soundbridge.js")
+    %script(type="text/javascript" charset="utf-8" src="/javascripts/webloop-editor.js")
+    %script(type="text/javascript" charset="utf-8" src="/javascripts/webloop-player.js")
+    %link(rel="stylesheet" href="/screen.css" type="text/css" media="screen, projection" charset="utf-8")
+
+  %body
+    #head
+      %h1
+        %a(href="/") webloop next generation
+    =yield
+
+    #foot
+      :textile
+        &copy; <a href="http://jan.krutisch.de/">Jan Krutisch</a>. <a href="http://www.nanoloop.com/">nanoloop</a> and the nanoloop icons are &copy; Oliver Wittchow
+
+        a hack that was started for #musichackday STHLM 2010 and is now continued on #musichackday london 2010
+
+        Every sound that you hear is generated in pure javascript. It is output using either the <a href="http://localhost:4567">mozilla audio data api</a>,
+        the <a href="http://chromium.googlecode.com/svn/trunk/samples/audio/specification/specification.html">google web audio api</a> or a flash fallback.
+
+        Fork this on <a href="http://github.com/halfbyte/webloop">github.com</a>. Please report bugs <a href="http://github.com/halfbyte/webloop/issues">here</a>
+

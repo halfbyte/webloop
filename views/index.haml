@@ -1,0 +1,13 @@
+%h2 Existing rooms
+%ul
+  - @rooms.each do |room|
+    %li
+      %a(href="/rooms/#{room['_id']}") #{room['name']}
+%h2 Create a new one
+%form(action="/room/new" method="post")
+  %p
+    %label
+      Name:
+      %input(type="text" name="name")
+  %p
+    %input(type="submit" value="Create")

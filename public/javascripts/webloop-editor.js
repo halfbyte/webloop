@@ -30,7 +30,7 @@ var PatternData = function() {
   };
   
   that.dump = function() {
-    //console.log(patternData);
+    // console.log(patternData);
   };
   
   that.at = function(track, num) {
@@ -39,7 +39,6 @@ var PatternData = function() {
       not: patternData[track].not[num],
       snd: patternData[track].snd[num],
       mod: patternData[track].mod[num],
-      trg: patternData[track].trg[num],
       env: patternData[track].env[num]
     };
   };
@@ -54,35 +53,35 @@ var PatternData = function() {
     
   };
   
-  that.set = function(track, type, num, data, callback) {
+  that.set = function(room, track, type, num, data, callback) {
     defaultData(track, type, num);
     patternData[track][type][num] = data;
     patternData[track].trg[num] = true;
-    $.post('/edit/' + track + "/" + type + "/" + num, data, function(data) {
+    $.post('/edit/' + room + "/" + track + "/" + type + "/" + num, data, function(data) {
       if(typeof callback !== 'undefined') callback();
     }, 'json');
     
   };
-  that.clr = function(track, type, num, callback) {
+  that.clr = function(room, track, type, num, callback) {
     defaultData(track, type, num);
     patternData[track][type][num] = null;
     patternData[track].trg[num] = false;
-    $.post('/edit/' + track + "/" + type + "/" + num, {clear: true}, function(data) {
+    $.post('/edit/' + room + "/" + track + "/" + type + "/" + num, {clear: true}, function(data) {
       if(typeof callback !== 'undefined') callback();
     }, 'json');
     
   };
   
-  that.clearRow = function(track, type, callback) {
+  that.clearRow = function(room, track, type, callback) {
     if (!patternData[track]) patternData[track] = {};
     patternData[track].trg = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
-    $.post('/clear/' + track + "/" + type, null, function(data) {
+    $.post('/clear/' + room + "/" + track + "/" + type, null, function(data) {
       if(typeof callback !== 'undefined') callback();
     }, 'json');
   };
   
-  that.updateFromRemote = function(callback) {
-    $.get('/update', {}, function(data) {
+  that.updateFromRemote = function(room, callback) {
+    $.get('/update/' + room, {}, function(data) {
       patternData = data;
       if (typeof callback !== 'undefined') callback();
     }, 'json');
@@ -91,7 +90,9 @@ var PatternData = function() {
 };
 
 
-var patternEditor = function() {
+var patternEditor = function(selectah) {
+
+  var roomId = $(selectah).attr('data-room-id');
 
   var that = {};
 
@@ -188,18 +189,18 @@ var patternEditor = function() {
   };
 
   var reloadPattern = function() {
-    that.patternData.updateFromRemote(redraw);
+    that.patternData.updateFromRemote(roomId, redraw);
   };
 
   var setPatternData = function(num, x, y) {
-    that.patternData.set(that.currentTrack, that.currentType, num, {x: x, y: y}, redraw);
+    that.patternData.set(roomId, that.currentTrack, that.currentType, num, {x: x, y: y}, redraw);
   };
   var clearPatternData = function(num) {
-    that.patternData.clr(that.currentTrack, that.currentType, num, redraw);
+    that.patternData.clr(roomId, that.currentTrack, that.currentType, num, redraw);
   };
   
   var clearRow = function() {
-    that.patternData.clearRow(that.currentTrack, that.currentType, redraw);
+    that.patternData.clearRow(roomId, that.currentTrack, that.currentType, redraw);
   };
 
   function openDetail(element) {
@@ -284,7 +285,7 @@ var patternEditor = function() {
   });
   
   $("#button-clear").click(function() {
-    var row = that.patternData.clearRow(that.currentTrack, that.currentType, redraw);
+    var row = that.patternData.clearRow(roomId, that.currentTrack, that.currentType, redraw);
     return false;
   });
   
@@ -300,7 +301,7 @@ var patternEditor = function() {
   return that;
 };
 
-pe = patternEditor();
+pe = patternEditor('#edit-area');
 window.setInterval(function() {
   pe.patternData.dump();
 }, 2000);
