@@ -30,7 +30,18 @@ var PatternData = function() {
   };
   
   that.dump = function() {
-    console.log(patternData);
+    //console.log(patternData);
+  };
+  
+  that.at = function(track, num) {
+    if(!patternData[track].trg[num]) return null;
+    return {
+      not: patternData[track].not[num],
+      snd: patternData[track].snd[num],
+      mod: patternData[track].mod[num],
+      trg: patternData[track].trg[num],
+      env: patternData[track].env[num]
+    };
   };
   
   that.get = function(track, type, num) { 

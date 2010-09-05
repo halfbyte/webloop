@@ -20,6 +20,9 @@ var SoundBridge = function() {
   var tail = null;
   var prebufferSize = 0;
   var currentWritePosition = 0;
+  var WEBKIT = 0;
+  var MOZILLA = 1;
+  var FLASH = 2;
 
   var log = function(text) {
     if (typeof console !== 'undefined' && console.log)
@@ -63,7 +66,7 @@ var SoundBridge = function() {
   that.setCallback = function(fun) {
     callback = fun;
     
-    if(context != null) {
+    if(method === WEBKIT) {
       jsNode.onaudioprocess = function(event) {
         bufferCounter = 0;
         jsNodeOutputBuffer = event.outputBuffer;
@@ -82,8 +85,11 @@ var SoundBridge = function() {
         }
           
       };
-    } else if (method === 'mozilla') {
+    } else if (method === MOZILLA) {
+      var i = 0;
+      log("setting interval call function");
       window.setInterval(function() {
+        if (!playing) return;
         var written;
         // Check if some data was not written in previous attempts.
         if(tail) {  
@@ -99,13 +105,13 @@ var SoundBridge = function() {
 
         // Check if we need add some data to the audio output.
         var currentPosition = audio.mozCurrentSampleOffset();
-        var available = currentPosition + prebufferSize - currentWritePosition;
+        var available = Math.min(currentPosition + prebufferSize - currentWritePosition, 22050);
         if(available > 0) {
          // Request some sound data from the callback function.
          soundData = new Float32Array(available);
          bufferCounter = 0;
          if (playing) {
-           fun(soundData.length, 0);
+           callback(soundData.length, 0);
          } else {
            var len = soundData.length;
            for(i=0;i<len;i++) soundData[i] = 0.0;
@@ -120,11 +126,13 @@ var SoundBridge = function() {
          }
          currentWritePosition += written;
         }
+        i += 1;
       },100);
-    } else if (method === 'flash') {
+    } else if (method === FLASH) {
       window.__soundbridgeGenSound = function(bufferSize, bufferPos) {
         buffer = "";
-        callback(bufferSize, bufferPos);
+        var durStart = new Date().getTime();
+        callback(bufferSize, 0);
         return buffer;
       };
       window.setTimeout(function() { flashObject.setCallback("__soundbridgeGenSound"); }, 500);
@@ -136,44 +144,42 @@ var SoundBridge = function() {
 
   
   that.addToBuffer = function(sound) {
-    if (context != null && jsNodeOutputBuffer != null) {      
+    if (method === WEBKIT) {      
       chanL[bufferCounter] = sound;
       chanR[bufferCounter] = sound;
       bufferCounter++;
-    } else if (method === 'mozilla') {
+    } else if (method === MOZILLA) {
       soundData[bufferCounter] = sound;
       bufferCounter++;
-    } else if (method === 'flash') {
+    } else if (method === FLASH) {
       var word = Math.round((sound * 32768.0 * 0.5) + 32768.0);
       buffer += soundbridge.encodeHex(word);      
     }
-    
-    
   };
   that.play = function() {
     playing = true;
-    if(method === 'flash' && flashObject !== null) flashObject.play();      
+    if(method === FLASH && flashObject !== null) flashObject.play();      
   };
 
   that.stop = function() {
     playing = false;
-    if(method === 'flash' && flashObject !== null) flashObject.stop();
+    if(method === FLASH && flashObject !== null) flashObject.stop();
   };
 
   if (typeof AudioContext !== 'undefined') {
     context = new AudioContext();
     jsNode = context.createJavaScriptNode(4096, 0, 2);
     jsNode.connect(context.destination);
-    method = 'webkit';
+    method = WEBKIT;
     log("I'm on webkit");
   } else if ((typeof Audio !== 'undefined') && (audio = new Audio()) && audio.mozSetup) {
     log("I'm on an audio build of mozilla");
     audioElement = audio;
     audioElement.mozSetup(1, 44100);
-    prebufferSize = 44100 / 2;
-    method = 'mozilla';
+    prebufferSize =  44100 / 2;
+    method = MOZILLA;
   } else {
-    method = 'flash';
+    method = FLASH;
     log("I suck and will fall through to flash");
     fallThrough();
     
