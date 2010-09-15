@@ -13,12 +13,15 @@
   %body
     #head
       %h1
-        %a(href="/") webloop next generation
-    =yield
+        %a(href="/") webloop v2 @ #{@title}
+    #content
+      =yield
 
     #foot
       :textile
-        &copy; <a href="http://jan.krutisch.de/">Jan Krutisch</a>. <a href="http://www.nanoloop.com/">nanoloop</a> and the nanoloop icons are &copy; Oliver Wittchow
+        &copy; "Jan Krutisch":http://jan.krutisch.de/ aka "@halfbyte":http://twitter.com/halfbyte.
+
+        "nanoloop":http://www.nanoloop.com/ and the nanoloop icons are &copy; Oliver Wittchow
 
         a hack that was started for #musichackday STHLM 2010 and is now continued on #musichackday london 2010
 

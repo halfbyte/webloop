@@ -190,14 +190,14 @@ var sequencer = function() {
     for(var i=0;i<bufferSize;i++) {
       var posInPattern = (absoluteBufferPos + i) % patternLengthInSamples;
       var noteInPattern = Math.floor(posInPattern / (noteLengthInSamples));
-      // commented out for performance reasons. I disapprove.
-      // if (posInPattern === 0) {
-      //   indicatorNotePos = -1;
-      // }
-      // if (noteInPattern > indicatorNotePos) {
-      //   pe.highlightStep(noteInPattern);
-      //   indicatorNotePos = noteInPattern;
-      // } 
+      //commented out for performance reasons. I disapprove.
+      if (posInPattern === 0) {
+        indicatorNotePos = -1;
+      }
+      if (noteInPattern > indicatorNotePos) {
+        pe.highlightStep(noteInPattern);
+        indicatorNotePos = noteInPattern;
+      } 
       var mixerValue = 0;
       for (var tr = 0; tr < numTracks; tr++) {
         var track = tracks[tr];

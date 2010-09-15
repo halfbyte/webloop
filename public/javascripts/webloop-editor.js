@@ -4,13 +4,24 @@ $(function() {
 
 var PatternData = function() {
   var that = {};
-  var patternData = {};
+  var patternData = [];
   var defaultValues = {
     not: {x:2, y:0},
     snd: {x:8, y:8},
     env: {x:5, y:5},
     mod: {x:8, y:8}
   };
+  
+  $.each(['l', 'r', 's', 'n'], function(trk) {
+    patternData[trk] = {};
+    $.each(['not', 'snd', 'env', 'mod'], function(key, value) {
+      patternData[trk][key] = [];
+      for(var i=0;i<15;i++) {
+        patternData[trk][key].push(defaultValues[key]);
+      }
+    });
+    patternData[trk].trg = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
+  });
   
   var defaultData = function(track, type, num) {
     if (typeof (patternData[track]) === 'undefined') patternData[track] = {};
@@ -36,10 +47,14 @@ var PatternData = function() {
   that.at = function(track, num) {
     if(!patternData[track].trg[num]) return null;
     return {
-      not: patternData[track].not[num],
-      snd: patternData[track].snd[num],
-      mod: patternData[track].mod[num],
-      env: patternData[track].env[num]
+      // not: patternData[track].not[num],
+      // snd: patternData[track].snd[num],
+      // mod: patternData[track].mod[num],
+      // env: patternData[track].env[num]
+      not: patternData[track].not[num] || defaultValues.not,
+      snd: patternData[track].snd[num] || defaultValues.snd,
+      mod: patternData[track].mod[num] || defaultValues.mod,
+      env: patternData[track].env[num] || defaultValues.env
     };
   };
   
@@ -294,9 +309,9 @@ var patternEditor = function(selectah) {
   redraw();
   reloadPattern();
   updateButtons();
-  // window.setInterval( function() {
-  //   //reloadPattern();
-  // }, 2000);
+  window.setInterval( function() {
+    reloadPattern();
+  }, 2000);
 
   return that;
 };

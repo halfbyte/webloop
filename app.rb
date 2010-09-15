@@ -4,6 +4,7 @@ require 'yaml'
 require 'json'
 require 'haml'
 require 'mongo'
+require 'bson'
 
 database = nil
 config = {
@@ -34,6 +35,7 @@ EMPTY_TRACK = {
 
 get "/" do
   @rooms = database['rooms'].find();
+  @title = "lobby"
   haml :index
 end
 
@@ -52,6 +54,7 @@ end
 
 get "/rooms/:room" do
   @room = database['rooms'].find_one(BSON::ObjectId.from_string(params[:room]));
+  @title = @room['name']
   haml :room
 end
 
@@ -73,16 +76,18 @@ post "/edit/:room/:track/:type/:id" do
   id = params[:id].to_i
   objId = BSON::ObjectId.from_string(params[:room])
   @room = database['rooms'].find_one(objId)
-    
-  @room[track][type] = [nil] * 16 if @room[track][type].empty?
-  @room[track]['trg'] = [false] * 16 if @room[track]['trg'].empty?
+  @room[track] = {} if @room[track].nil?
+  @room[track][type] = [nil] * 16 if @room[track][type].nil? || @room[track][type].empty?
+  puts @room.inspect
+  @room[track]['trg'] = [false] * 16 if @room[track]['trg'].nil? || @room[track]['trg'].empty?
   if params[:clear]
     @room[track][type][id] = nil
     @room[track]['trg'][id] = false
   else
     @room[track][type][id] = {:x => params[:x].to_i, :y => params[:y].to_i}
     @room[track]['trg'][id] = true
-  end  
+  end
+  puts @room.to_yaml
   database['rooms'].save(@room, :safe => true)
 
   content_type 'application/json'

@@ -1,6 +1,14 @@
 
 body
   font-family: Helvetica, Arial, sans-serif
+  background-color: #000
+  padding: 0
+  margin: 0
+  color: #fff
+  a:link
+    color: #88f
+  a:visited
+    color: #88f
 #edit-area
   width: 368px
   margin: 0 auto
@@ -14,11 +22,24 @@ body
     text-align: right
 
 #head
+  border-bottom: 2px solid #888
+
   h1
-    background: #f00
+    background: #C00
     padding: 0.2em
+    margin: 0
     color: #fff
     text-align: center
+    a
+      color: #fff
+      text-decoration: none
+    a:hover
+      color: #fff
+      text-decoration: underline
+
+#content
+  padding: 20px
+  background-color: #fff
 
 #debug
   border: 1px solid red
@@ -96,8 +117,12 @@ canvas
   border-top: 1px solid black
   font-size: 0.8em
   text-align: center
-  margin-top: 30px
-  padding-top: 20px
+  margin-top: 0
+  padding-top: 10px
+  background-color: #000
+  color: #fff
+  border-top: 2px solid #888
+
 
 .button-delete
   width: 16px
