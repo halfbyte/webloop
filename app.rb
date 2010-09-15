@@ -54,6 +54,7 @@ end
 
 get "/rooms/:room" do
   @room = database['rooms'].find_one(BSON::ObjectId.from_string(params[:room]));
+  redirect "/" if @room.nil?
   @title = @room['name']
   haml :room
 end
