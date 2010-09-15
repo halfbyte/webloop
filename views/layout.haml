@@ -13,7 +13,9 @@
   %body
     #head
       %h1
-        %a(href="/") webloop v2 @ #{@title}
+        %a(href="/")
+          webloop v2 @
+          &= @title
     #content
       =yield
 
