@@ -185,7 +185,7 @@ var sequencer = function() {
   
   //var timestamp = function() { return new Date().getTime(); };
   
-  that.update = function(bufferSize, bufferPos) {
+  that.update = function(soundbridge, bufferSize, channels) {
     var numTracks = tracks.length;
     for(var i=0;i<bufferSize;i++) {
       var posInPattern = (absoluteBufferPos + i) % patternLengthInSamples;
@@ -265,7 +265,8 @@ var sequencer = function() {
         track.posInNote++;
         mixerValue += sound;
       }
-      soundbridge.addToBuffer(mixerValue / numTracks);      
+      var mixerVol = mixerValue / numTracks;
+      soundbridge.addToBuffer(mixerVol, mixerVol);
     }
     absoluteBufferPos += bufferSize;
     return;
@@ -278,9 +279,10 @@ var sequencer = function() {
 
 $(function() {
   var seq = sequencer();
-
+  soundbridge = SoundBridge(2, 44100, '/soundbridge');
   window.setTimeout(function() {
-    soundbridge = SoundBridge();
+    
+    
     soundbridge.setCallback(seq.update);
     var playing = false;
     $('#playButton').click(function(e) {
@@ -295,7 +297,7 @@ $(function() {
       }
       return false;
     });
-  }, 200);
+  }, 1000);
 
 
 });

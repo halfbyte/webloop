@@ -1,0 +1,3 @@
+[submodule "public/soundbridge"]
+	path = public/soundbridge
+	url = git@github.com:halfbyte/soundbridge.js
