@@ -279,25 +279,21 @@ var sequencer = function() {
 
 $(function() {
   var seq = sequencer();
-  soundbridge = SoundBridge(2, 44100, '/soundbridge');
-  window.setTimeout(function() {
-    
-    
-    soundbridge.setCallback(seq.update);
+  SoundBridge(2, 44100, '/soundbridge', function(bridge) {
+    bridge.setCallback(seq.update);    
     var playing = false;
     $('#playButton').click(function(e) {
       if (playing) {
-        soundbridge.stop();
+        bridge.stop();
         $(this).html("play");
         playing = false;
       } else {
-        soundbridge.play();
+        bridge.play();
         $(this).html("stop");
         playing = true;
       }
       return false;
     });
-  }, 1000);
-
+  });
 
 });

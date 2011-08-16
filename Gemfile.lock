@@ -1,0 +1,26 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    RedCloth (4.2.7)
+    bson (1.3.1)
+    bson_ext (1.3.1)
+    haml (3.1.2)
+    json (1.5.3)
+    mongo (1.3.1)
+      bson (>= 1.3.1)
+    rack (1.3.2)
+    sinatra (1.2.6)
+      rack (~> 1.1)
+      tilt (>= 1.2.2, < 2.0)
+    tilt (1.3.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  RedCloth
+  bson_ext
+  haml
+  json
+  mongo
+  sinatra
